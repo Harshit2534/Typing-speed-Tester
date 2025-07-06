@@ -81,6 +81,7 @@ const toggleStatsBtn = document.getElementById("toggleStatsBtn");
 const clearProgressBtn = document.getElementById("clearProgressBtn");
 const showFeaturesBtn = document.getElementById("showFeaturesBtn");
 const darkModeToggle = document.getElementById("darkModeToggle");
+const darkModeCircleBtn = document.getElementById("darkModeCircleBtn");
 
 // For extra features
 let chart;
@@ -288,7 +289,29 @@ function toggleDarkMode() {
 function loadDarkMode() {
   if (localStorage.getItem("darkMode") === "true") {
     document.body.classList.add("dark-mode");
+  } else {
+    document.body.classList.remove("dark-mode");
   }
+  updateDarkModeIcon();
+}
+function updateDarkModeIcon() {
+  if (!darkModeCircleBtn) return;
+  if (document.body.classList.contains("dark-mode")) {
+    darkModeCircleBtn.textContent = "☀️";
+  } else {
+    darkModeCircleBtn.textContent = "🌙";
+  }
+}
+
+if (darkModeCircleBtn) {
+  darkModeCircleBtn.addEventListener("click", () => {
+    document.body.classList.toggle("dark-mode");
+    localStorage.setItem(
+      "darkMode",
+      document.body.classList.contains("dark-mode")
+    );
+    updateDarkModeIcon();
+  });
 }
 
 // --- TYPING LOGIC ---
@@ -520,16 +543,6 @@ aiSentenceBtn.addEventListener("click", async () => {
   }
 });
 
-// Dark mode toggle
-const darkToggle = document.createElement("button");
-darkToggle.textContent = "🌙";
-darkToggle.className = "btn btn-secondary";
-darkToggle.style.position = "fixed";
-darkToggle.style.top = "1rem";
-darkToggle.style.right = "1rem";
-darkToggle.onclick = toggleDarkMode;
-document.body.appendChild(darkToggle);
-
 // --- DIFFICULTY FILTER ---
 function getRandomSentenceByDifficulty() {
   if (selectedDifficulty === "any") return getRandomSentence();
@@ -577,8 +590,6 @@ showFeaturesBtn.addEventListener("click", () => {
     ? "Hide Features"
     : "Show All Features";
 });
-
-darkModeToggle.addEventListener("click", toggleDarkMode);
 
 // --- INIT ---
 function init() {
