@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Typing Speed Tester</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-ENjdO4Dr2bkBIFxQpeoA6DQD5NnQdF1Q6tztl5Pq5R5V0w3QF3zF5F5F5F5F5F5F"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Typing Speed Tester</h1>
+        <p>Test your typing speed and accuracy</p>
+      </header>
+
+      <div class="stats-container row g-4 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="card text-center shadow-sm stat-card">
+            <div class="card-body">
+              <h3 class="card-title text-secondary fs-6">WPM</h3>
+              <span id="wpm" class="fs-2 fw-bold">0</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card text-center shadow-sm stat-card">
+            <div class="card-body">
+              <h3 class="card-title text-secondary fs-6">Accuracy</h3>
+              <span id="accuracy" class="fs-2 fw-bold">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card text-center shadow-sm stat-card">
+            <div class="card-body">
+              <h3 class="card-title text-secondary fs-6">Errors</h3>
+              <span id="errors" class="fs-2 fw-bold">0</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card text-center shadow-sm stat-card">
+            <div class="card-body">
+              <h3 class="card-title text-secondary fs-6">Time</h3>
+              <span id="time" class="fs-2 fw-bold">60s</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="test-container card p-4 mb-4 shadow">
+        <div class="text-display mb-3" id="textDisplay">
+          Click "Start Test" to begin typing!
+        </div>
+        <textarea
+          id="textInput"
+          class="form-control"
+          placeholder="Start typing here..."
+          disabled
+        ></textarea>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn" class="btn btn-primary">Start Test</button>
+        <button id="resetBtn" class="btn btn-secondary" disabled>Reset</button>
+        <button id="aiSentenceBtn" class="btn btn-secondary">
+          Get AI Sentence
+        </button>
+      </div>
+
+      <div
+        class="settings d-flex flex-wrap align-items-center gap-3 justify-content-center mb-4"
+      >
+        <label for="timeSelect">Test Duration:</label>
+        <select id="timeSelect">
+          <option value="30">30 seconds</option>
+          <option value="60" selected>1 minute</option>
+          <option value="120">2 minutes</option>
+          <option value="300">5 minutes</option>
+        </select>
+        <label for="difficultySelect">Difficulty:</label>
+        <select id="difficultySelect">
+          <option value="any" selected>Any</option>
+          <option value="Easy">Easy</option>
+          <option value="Medium">Medium</option>
+          <option value="Hard">Hard</option>
+        </select>
+      </div>
+
+      <div class="results" id="results" style="display: none">
+        <h2>Test Results</h2>
+        <div id="sentenceDifficulty" class="mb-2"></div>
+        <div class="results-grid">
+          <div class="result-item">
+            <span class="label">Words Per Minute:</span>
+            <span class="value" id="finalWpm">0</span>
+          </div>
+          <div class="result-item">
+            <span class="label">Accuracy:</span>
+            <span class="value" id="finalAccuracy">100%</span>
+          </div>
+          <div class="result-item">
+            <span class="label">Total Errors:</span>
+            <span class="value" id="finalErrors">0</span>
+          </div>
+          <div class="result-item">
+            <span class="label">Characters Typed:</span>
+            <span class="value" id="charactersTyped">0</span>
+          </div>
+        </div>
+        <!-- AI features containers will be injected by JS -->
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </body>
+</html>
