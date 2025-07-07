@@ -55,6 +55,27 @@ const SENTENCES = [
   "The five boxing wizards jump quickly and vex the judge.",
   "Zigzagging quickly, the jinxed dwarf boxed five wizards.",
   "A quick brown dog jumps over the lazy fox.",
+  // AI-like sentences for better variety
+  "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+  "The only way to do great work is to love what you do.",
+  "In the middle of difficulty lies opportunity.",
+  "The future belongs to those who believe in the beauty of their dreams.",
+  "Life is what happens when you're busy making other plans.",
+  "The journey of a thousand miles begins with one step.",
+  "Be the change you wish to see in the world.",
+  "Everything you've ever wanted is on the other side of fear.",
+  "The best way to predict the future is to invent it.",
+  "Innovation distinguishes between a leader and a follower.",
+  "The only limit to our realization of tomorrow is our doubts of today.",
+  "What you get by achieving your goals is not as important as what you become by achieving your goals.",
+  "The mind is everything. What you think you become.",
+  "Quality is not an act, it is a habit.",
+  "The difference between ordinary and extraordinary is that little extra.",
+  "Your time is limited, don't waste it living someone else's life.",
+  "The greatest glory in living lies not in never falling, but in rising every time we fall.",
+  "It does not matter how slowly you go as long as you do not stop.",
+  "The only impossible journey is the one you never begin.",
+  "Believe you can and you're halfway there.",
 ];
 const TEST_DURATIONS = [30, 60, 120, 300];
 const MAX_LEADERBOARD = 10;
@@ -247,6 +268,49 @@ function showTypingCoach() {
 // --- UTILS ---
 function getRandomSentence() {
   return SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
+}
+
+// Generate a dynamic sentence as fallback
+function generateDynamicSentence() {
+  const subjects = [
+    "The programmer",
+    "A developer",
+    "The coder",
+    "An engineer",
+    "The student",
+    "A learner",
+  ];
+  const verbs = [
+    "writes",
+    "creates",
+    "builds",
+    "develops",
+    "designs",
+    "implements",
+  ];
+  const objects = [
+    "beautiful code",
+    "amazing applications",
+    "innovative solutions",
+    "user-friendly interfaces",
+    "robust systems",
+    "elegant algorithms",
+  ];
+  const adverbs = [
+    "efficiently",
+    "creatively",
+    "carefully",
+    "skillfully",
+    "passionately",
+    "diligently",
+  ];
+
+  const subject = subjects[Math.floor(Math.random() * subjects.length)];
+  const verb = verbs[Math.floor(Math.random() * verbs.length)];
+  const object = objects[Math.floor(Math.random() * objects.length)];
+  const adverb = adverbs[Math.floor(Math.random() * adverbs.length)];
+
+  return `${subject} ${verb} ${object} ${adverb}.`;
 }
 function formatTime(sec) {
   return sec + "s";
@@ -524,19 +588,94 @@ timeSelect.addEventListener("change", (e) => {
 textInput.addEventListener("input", handleInput);
 aiSentenceBtn.addEventListener("click", async () => {
   aiSentenceBtn.disabled = true;
-  aiSentenceBtn.textContent = "Loading...";
+  aiSentenceBtn.textContent = "Fetching AI Sentence...";
+
   try {
-    const response = await fetch("https://api.quotable.io/random");
-    if (!response.ok) throw new Error("API error");
-    const data = await response.json();
-    if (data.content && data.content.length > 0) {
-      startTest(data.content);
+    // Try multiple API endpoints for better reliability
+    const apis = [
+      "https://api.quotable.io/random",
+      "https://api.quotable.io/random?maxLength=100",
+      "https://api.quotable.io/random?tags=inspirational",
+    ];
+
+    let success = false;
+    let sentence = "";
+
+    for (let i = 0; i < apis.length; i++) {
+      const apiUrl = apis[i];
+      try {
+        // Update button text to show progress
+        aiSentenceBtn.textContent = `Trying API ${i + 1}/${apis.length}...`;
+
+        // Create a timeout promise
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), 5000)
+        );
+
+        const fetchPromise = fetch(apiUrl, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          mode: "cors",
+        });
+
+        const response = await Promise.race([fetchPromise, timeoutPromise]);
+
+        if (response.ok) {
+          const data = await response.json();
+          if (
+            data.content &&
+            data.content.length > 10 &&
+            data.content.length < 200
+          ) {
+            sentence = data.content;
+            success = true;
+            break;
+          }
+        }
+      } catch (apiError) {
+        console.log(`API ${apiUrl} failed:`, apiError);
+        continue;
+      }
+    }
+
+    if (success && sentence) {
+      // Clean up the sentence (remove extra quotes, normalize spacing)
+      sentence = sentence.replace(/^["']|["']$/g, "").trim();
+      startTest(sentence);
     } else {
-      throw new Error("No content");
+      throw new Error("No valid content received");
     }
   } catch (e) {
-    alert("Failed to fetch AI sentence. Using a local sentence instead.");
-    startTest();
+    console.error("AI sentence fetch error:", e);
+
+    // Show a more user-friendly error message
+    const errorDiv = document.createElement("div");
+    errorDiv.className = "alert alert-warning mt-3";
+    errorDiv.innerHTML = `
+      <strong>AI Sentence Unavailable</strong><br>
+      Unable to fetch AI-generated sentence. Using a local sentence instead.
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    // Insert error message before results div
+    const resultsDiv = document.getElementById("results");
+    if (resultsDiv && resultsDiv.parentNode) {
+      resultsDiv.parentNode.insertBefore(errorDiv, resultsDiv);
+    }
+
+    // Auto-remove error message after 5 seconds
+    setTimeout(() => {
+      if (errorDiv.parentNode) {
+        errorDiv.parentNode.removeChild(errorDiv);
+      }
+    }, 5000);
+
+    // Fallback to dynamic sentence generation
+    const fallbackSentence = generateDynamicSentence();
+    startTest(fallbackSentence);
   } finally {
     aiSentenceBtn.disabled = false;
     aiSentenceBtn.textContent = "Get AI Sentence";

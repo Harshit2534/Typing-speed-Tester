@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Battle Mode - VS AI</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        min-height: 100vh;
+        color: white;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .game-container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .battle-arena {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin: 20px 0;
+      }
+
+      .player-side,
+      .ai-side {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 30px;
+        border-radius: 15px;
+        border: 2px solid;
+        text-align: center;
+      }
+
+      .player-side {
+        border-color: #3498db;
+      }
+
+      .ai-side {
+        border-color: #e74c3c;
+      }
+
+      .player-header,
+      .ai-header {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
+
+      .player-header {
+        color: #3498db;
+      }
+
+      .ai-header {
+        color: #e74c3c;
+      }
+
+      .text-display {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        min-height: 100px;
+        font-size: 1.2rem;
+        line-height: 1.6;
+        text-align: left;
+      }
+
+      .typing-input {
+        width: 100%;
+        padding: 15px;
+        font-size: 1.2rem;
+        border: 3px solid #3498db;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        text-align: center;
+        outline: none;
+        margin: 20px 0;
+      }
+
+      .typing-input:focus {
+        border-color: #5dade2;
+        box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+
+      .player-stat {
+        color: #3498db;
+      }
+
+      .ai-stat {
+        color: #e74c3c;
+      }
+
+      .stat-label {
+        font-size: 0.8rem;
+        opacity: 0.8;
+      }
+
+      .progress-bars {
+        margin: 20px 0;
+      }
+
+      .progress-item {
+        margin: 10px 0;
+      }
+
+      .progress-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        transition: width 0.3s ease;
+      }
+
+      .player-progress {
+        background: linear-gradient(90deg, #3498db, #5dade2);
+      }
+
+      .ai-progress {
+        background: linear-gradient(90deg, #e74c3c, #ec7063);
+      }
+
+      .timer {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #f39c12;
+        text-align: center;
+        margin: 20px 0;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      .game-over {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+
+      .game-over-content {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        border: 2px solid #f39c12;
+        max-width: 600px;
+        width: 90%;
+      }
+
+      .back-btn {
+        position: static !important;
+        margin: 0 auto;
+        font-size: 1.1rem;
+        padding: 14px 38px;
+        border-radius: 18px;
+        box-shadow: 0 2px 12px #fff4;
+      }
+
+      .difficulty-selector {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 15px;
+        margin: 20px 0;
+        text-align: center;
+      }
+
+      .difficulty-btn {
+        margin: 5px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .difficulty-btn.easy {
+        background: #27ae60;
+        color: white;
+      }
+
+      .difficulty-btn.medium {
+        background: #f39c12;
+        color: white;
+      }
+
+      .difficulty-btn.hard {
+        background: #e74c3c;
+        color: white;
+      }
+
+      .difficulty-btn.expert {
+        background: #8e44ad;
+        color: white;
+      }
+
+      .difficulty-btn:hover {
+        transform: scale(1.05);
+      }
+
+      .difficulty-btn.selected {
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+      }
+
+      .ai-typing-indicator {
+        background: rgba(231, 76, 60, 0.3);
+        padding: 10px;
+        border-radius: 8px;
+        margin: 10px 0;
+        font-style: italic;
+      }
+
+      .winner-announcement {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 20px 0;
+        padding: 20px;
+        border-radius: 10px;
+      }
+
+      .winner-player {
+        background: rgba(52, 152, 219, 0.3);
+        border: 2px solid #3498db;
+      }
+
+      .winner-ai {
+        background: rgba(231, 76, 60, 0.3);
+        border: 2px solid #e74c3c;
+      }
+
+      .winner-draw {
+        background: rgba(241, 196, 15, 0.3);
+        border: 2px solid #f39c12;
+      }
+
+      .bottom-btn-bar {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 32px 0 24px 0;
+      }
+
+      @media (max-width: 600px) {
+        .back-btn {
+          width: 90vw;
+          font-size: 1rem;
+        }
+        .bottom-btn-bar {
+          margin: 18px 0 12px 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-container">
+      <h1 class="text-center">🤖 Battle Mode - VS AI</h1>
+      <p class="lead text-center">
+        Face off against an AI typist with increasing difficulty!
+      </p>
+
+      <div class="difficulty-selector" id="difficultySelector">
+        <h4>Select AI Difficulty:</h4>
+        <button class="difficulty-btn easy" onclick="selectDifficulty('easy')">
+          Easy (30 WPM)
+        </button>
+        <button
+          class="difficulty-btn medium"
+          onclick="selectDifficulty('medium')"
+        >
+          Medium (50 WPM)
+        </button>
+        <button class="difficulty-btn hard" onclick="selectDifficulty('hard')">
+          Hard (70 WPM)
+        </button>
+        <button
+          class="difficulty-btn expert"
+          onclick="selectDifficulty('expert')"
+        >
+          Expert (90 WPM)
+        </button>
+      </div>
+
+      <div class="timer" id="timer">60</div>
+
+      <div class="battle-arena" id="battleArena" style="display: none">
+        <div class="player-side">
+          <div class="player-header">👤 You</div>
+          <div class="text-display" id="playerTextDisplay">
+            Click "Start Battle" to begin!
+          </div>
+          <input
+            type="text"
+            class="typing-input"
+            id="playerInput"
+            placeholder="Start typing..."
+            autocomplete="off"
+            disabled
+          />
+          <div class="stats">
+            <div class="stat-card">
+              <div class="stat-value player-stat" id="playerWpm">0</div>
+              <div class="stat-label">WPM</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value player-stat" id="playerAccuracy">100%</div>
+              <div class="stat-label">Accuracy</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value player-stat" id="playerProgress">0%</div>
+              <div class="stat-label">Progress</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value player-stat" id="playerScore">0</div>
+              <div class="stat-label">Score</div>
+            </div>
+          </div>
+          <div class="progress-bars">
+            <div class="progress-item">
+              <div class="progress-label">
+                <span>Progress</span>
+                <span id="playerProgressText">0%</span>
+              </div>
+              <div class="progress-bar">
+                <div
+                  class="progress-fill player-progress"
+                  id="playerProgressBar"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ai-side">
+          <div class="ai-header">🤖 AI Opponent</div>
+          <div class="text-display" id="aiTextDisplay">
+            AI is ready to battle!
+          </div>
+          <div
+            class="ai-typing-indicator"
+            id="aiTypingIndicator"
+            style="display: none"
+          >
+            AI is typing...
+          </div>
+          <div class="stats">
+            <div class="stat-card">
+              <div class="stat-value ai-stat" id="aiWpm">0</div>
+              <div class="stat-label">WPM</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value ai-stat" id="aiAccuracy">100%</div>
+              <div class="stat-label">Accuracy</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value ai-stat" id="aiProgress">0%</div>
+              <div class="stat-label">Progress</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value ai-stat" id="aiScore">0</div>
+              <div class="stat-label">Score</div>
+            </div>
+          </div>
+          <div class="progress-bars">
+            <div class="progress-item">
+              <div class="progress-label">
+                <span>Progress</span>
+                <span id="aiProgressText">0%</span>
+              </div>
+              <div class="progress-bar">
+                <div
+                  class="progress-fill ai-progress"
+                  id="aiProgressBar"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <button
+          class="btn btn-primary btn-lg"
+          id="startBtn"
+          onclick="startBattle()"
+        >
+          Start Battle
+        </button>
+      </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+      <div class="game-over-content">
+        <h2 id="battleResult">Battle Result</h2>
+        <div id="winnerAnnouncement"></div>
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-value player-stat" id="finalPlayerScore">0</div>
+            <div class="stat-label">Your Score</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value ai-stat" id="finalAiScore">0</div>
+            <div class="stat-label">AI Score</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="finalPlayerWpm">0</div>
+            <div class="stat-label">Your WPM</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="finalAiWpm">0</div>
+            <div class="stat-label">AI WPM</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="restartBattle()">
+          Battle Again
+        </button>
+        <a href="games.html" class="btn btn-secondary">Back to Games</a>
+      </div>
+    </div>
+
+    <div class="bottom-btn-bar">
+      <a href="games.html" class="btn btn-light back-btn">← Back to Games</a>
+    </div>
+
+    <script>
+      // Game state
+      let gameRunning = false;
+      let timeLeft = 60;
+      let selectedDifficulty = "medium";
+      let currentText = "";
+      let playerInput = "";
+      let aiInput = "";
+      let playerStartTime = null;
+      let aiStartTime = null;
+      let timer = null;
+      let aiTypingInterval = null;
+
+      // Difficulty settings
+      const difficulties = {
+        easy: { wpm: 30, accuracy: 95, delay: 2000 },
+        medium: { wpm: 50, accuracy: 90, delay: 1500 },
+        hard: { wpm: 70, accuracy: 85, delay: 1000 },
+        expert: { wpm: 90, accuracy: 80, delay: 500 },
+      };
+
+      // Sample texts
+      const sampleTexts = [
+        "The quick brown fox jumps over the lazy dog. This pangram contains every letter of the alphabet at least once. Pangrams are often used to display font samples and test keyboards.",
+        "Pack my box with five dozen liquor jugs. This is another famous pangram that uses all the letters of the English alphabet. It's commonly used in typing tests and font demonstrations.",
+        "Sphinx of black quartz, judge my vow. This short pangram is perfect for quick typing tests. It's concise yet contains all the necessary letters for comprehensive testing.",
+        "How vexingly quick daft zebras jump! This pangram is both challenging and fun to type. It includes unusual letter combinations that test typing skills thoroughly.",
+        "Bright vixens jump; dozy fowl quack. This pangram uses natural language patterns while still including all alphabet letters. It's great for realistic typing practice.",
+      ];
+
+      function selectDifficulty(difficulty) {
+        selectedDifficulty = difficulty;
+
+        // Update button styles
+        document.querySelectorAll(".difficulty-btn").forEach((btn) => {
+          btn.classList.remove("selected");
+        });
+        event.target.classList.add("selected");
+      }
+
+      function getRandomText() {
+        return sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+      }
+
+      function calculateWPM(input, startTime) {
+        if (!startTime) return 0;
+        const elapsed = (Date.now() - startTime) / 1000 / 60; // minutes
+        return elapsed > 0 ? Math.round(input.length / 5 / elapsed) : 0;
+      }
+
+      function calculateAccuracy(input, target) {
+        if (target.length === 0) return 100;
+        let correct = 0;
+        for (let i = 0; i < Math.min(input.length, target.length); i++) {
+          if (input[i] === target[i]) correct++;
+        }
+        return Math.round((correct / target.length) * 100);
+      }
+
+      function calculateProgress(input, target) {
+        return Math.round((input.length / target.length) * 100);
+      }
+
+      function calculateScore(wpm, accuracy, progress) {
+        return Math.round((wpm * accuracy * progress) / 100);
+      }
+
+      function updatePlayerStats() {
+        const wpm = calculateWPM(playerInput, playerStartTime);
+        const accuracy = calculateAccuracy(playerInput, currentText);
+        const progress = calculateProgress(playerInput, currentText);
+        const score = calculateScore(wpm, accuracy, progress);
+
+        document.getElementById("playerWpm").textContent = wpm;
+        document.getElementById("playerAccuracy").textContent = accuracy + "%";
+        document.getElementById("playerProgress").textContent = progress + "%";
+        document.getElementById("playerScore").textContent = score;
+        document.getElementById("playerProgressText").textContent =
+          progress + "%";
+        document.getElementById("playerProgressBar").style.width =
+          progress + "%";
+
+        // Update text display with highlighting
+        updateTextDisplay("playerTextDisplay", currentText, playerInput);
+      }
+
+      function updateAIStats() {
+        const wpm = calculateWPM(aiInput, aiStartTime);
+        const accuracy = calculateAccuracy(aiInput, currentText);
+        const progress = calculateProgress(aiInput, currentText);
+        const score = calculateScore(wpm, accuracy, progress);
+
+        document.getElementById("aiWpm").textContent = wpm;
+        document.getElementById("aiAccuracy").textContent = accuracy + "%";
+        document.getElementById("aiProgress").textContent = progress + "%";
+        document.getElementById("aiScore").textContent = score;
+        document.getElementById("aiProgressText").textContent = progress + "%";
+        document.getElementById("aiProgressBar").style.width = progress + "%";
+
+        // Update text display with highlighting
+        updateTextDisplay("aiTextDisplay", currentText, aiInput);
+      }
+
+      function updateTextDisplay(elementId, target, input) {
+        const element = document.getElementById(elementId);
+        let html = "";
+
+        for (let i = 0; i < target.length; i++) {
+          let char = target[i];
+          let cls = "";
+
+          if (i < input.length) {
+            if (input[i] === char) {
+              cls = "text-success";
+            } else {
+              cls = "text-danger";
+            }
+          } else if (i === input.length) {
+            cls = "bg-warning";
+          }
+
+          html += `<span class="${cls}">${char}</span>`;
+        }
+
+        element.innerHTML = html;
+      }
+
+      function simulateAITyping() {
+        const difficulty = difficulties[selectedDifficulty];
+        const targetWpm = difficulty.wpm;
+        const targetAccuracy = difficulty.accuracy;
+
+        // Calculate typing speed (characters per second)
+        const charsPerSecond = (targetWpm * 5) / 60;
+        const charInterval = 1000 / charsPerSecond;
+
+        let currentIndex = 0;
+
+        aiTypingInterval = setInterval(() => {
+          if (currentIndex < currentText.length && gameRunning) {
+            // Simulate accuracy
+            const shouldMakeMistake = Math.random() > targetAccuracy / 100;
+
+            if (shouldMakeMistake && currentIndex < currentText.length - 1) {
+              // Add a random character as mistake
+              aiInput += String.fromCharCode(
+                97 + Math.floor(Math.random() * 26)
+              );
+            } else {
+              aiInput += currentText[currentIndex];
+            }
+
+            currentIndex++;
+            updateAIStats();
+          } else {
+            clearInterval(aiTypingInterval);
+          }
+        }, charInterval);
+      }
+
+      function startBattle() {
+        gameRunning = true;
+        timeLeft = 60;
+        currentText = getRandomText();
+        playerInput = "";
+        aiInput = "";
+        playerStartTime = Date.now();
+        aiStartTime = Date.now() + difficulties[selectedDifficulty].delay;
+
+        document.getElementById("difficultySelector").style.display = "none";
+        document.getElementById("battleArena").style.display = "grid";
+        document.getElementById("startBtn").style.display = "none";
+        document.getElementById("playerInput").disabled = false;
+        document.getElementById("playerInput").focus();
+
+        // Start AI typing after delay
+        setTimeout(() => {
+          document.getElementById("aiTypingIndicator").style.display = "block";
+          simulateAITyping();
+        }, difficulties[selectedDifficulty].delay);
+
+        // Start timer
+        timer = setInterval(() => {
+          timeLeft--;
+          document.getElementById("timer").textContent = timeLeft;
+
+          if (timeLeft <= 0) {
+            endBattle();
+          }
+        }, 1000);
+
+        updatePlayerStats();
+        updateAIStats();
+      }
+
+      function endBattle() {
+        gameRunning = false;
+        clearInterval(timer);
+        clearInterval(aiTypingInterval);
+
+        document.getElementById("playerInput").disabled = true;
+        document.getElementById("aiTypingIndicator").style.display = "none";
+
+        const playerWpm = calculateWPM(playerInput, playerStartTime);
+        const aiWpm = calculateWPM(aiInput, aiStartTime);
+        const playerAccuracy = calculateAccuracy(playerInput, currentText);
+        const aiAccuracy = calculateAccuracy(aiInput, currentText);
+        const playerProgress = calculateProgress(playerInput, currentText);
+        const aiProgress = calculateProgress(aiInput, currentText);
+        const playerScore = calculateScore(
+          playerWpm,
+          playerAccuracy,
+          playerProgress
+        );
+        const aiScore = calculateScore(aiWpm, aiAccuracy, aiProgress);
+
+        // Determine winner
+        let result = "";
+        let winnerClass = "";
+
+        if (playerScore > aiScore) {
+          result = "🎉 You Win! 🎉";
+          winnerClass = "winner-player";
+        } else if (aiScore > playerScore) {
+          result = "🤖 AI Wins! 🤖";
+          winnerClass = "winner-ai";
+        } else {
+          result = "🤝 It's a Draw! 🤝";
+          winnerClass = "winner-draw";
+        }
+
+        document.getElementById("battleResult").textContent =
+          "Battle Complete!";
+        document.getElementById(
+          "winnerAnnouncement"
+        ).innerHTML = `<div class="winner-announcement ${winnerClass}">${result}</div>`;
+
+        document.getElementById("finalPlayerScore").textContent = playerScore;
+        document.getElementById("finalAiScore").textContent = aiScore;
+        document.getElementById("finalPlayerWpm").textContent = playerWpm;
+        document.getElementById("finalAiWpm").textContent = aiWpm;
+
+        document.getElementById("gameOver").style.display = "flex";
+      }
+
+      function restartBattle() {
+        document.getElementById("gameOver").style.display = "none";
+        document.getElementById("difficultySelector").style.display = "block";
+        document.getElementById("battleArena").style.display = "none";
+        document.getElementById("startBtn").style.display = "inline-block";
+        document.getElementById("timer").textContent = "60";
+
+        // Reset button styles
+        document.querySelectorAll(".difficulty-btn").forEach((btn) => {
+          btn.classList.remove("selected");
+        });
+      }
+
+      // Event listeners
+      document.getElementById("playerInput").addEventListener("input", (e) => {
+        if (!gameRunning) return;
+        playerInput = e.target.value;
+        updatePlayerStats();
+      });
+
+      // Initialize
+      selectDifficulty("medium");
+    </script>
+  </body>
+</html>

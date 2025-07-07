@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zombie Typing Invasion</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body.arcade-bg {
+        background: #0a0a1a;
+        min-height: 100vh;
+        margin: 0;
+        font-family: "Inter", "Segoe UI", Arial, sans-serif;
+        color: #fff;
+        overflow-x: hidden;
+      }
+      .arcade-center {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+      .arcade-card {
+        background: rgba(20, 20, 40, 0.85);
+        border-radius: 32px;
+        box-shadow: 0 0 32px #0ff8, 0 0 0 4px #222 inset;
+        padding: 32px 32px 24px 32px;
+        max-width: 900px;
+        width: 95vw;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        margin: 32px 0;
+        backdrop-filter: blur(8px);
+        border: 2px solid #0ff;
+      }
+      .arcade-top-bar {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+      }
+      .arcade-stats {
+        display: flex;
+        gap: 24px;
+        font-size: 1.2rem;
+        background: rgba(0, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 8px 18px;
+        box-shadow: 0 0 8px #0ff4;
+        align-items: center;
+      }
+      .arcade-stat .icon {
+        margin-right: 4px;
+      }
+      .arcade-wave-badge {
+        background: linear-gradient(90deg, #0ff, #09f 80%);
+        color: #222;
+        font-weight: bold;
+        font-size: 1.1rem;
+        padding: 8px 28px;
+        border-radius: 18px;
+        box-shadow: 0 2px 12px #0ff8;
+        letter-spacing: 1px;
+        border: 2px solid #fff2;
+        text-shadow: 0 1px 8px #fff8;
+      }
+      .arcade-canvas-wrap {
+        position: relative;
+        margin-bottom: 18px;
+        border-radius: 18px;
+        box-shadow: 0 0 32px #0ff4, 0 0 0 4px #222 inset;
+        background: repeating-linear-gradient(
+          135deg,
+          #111 0 2px,
+          #222 2px 40px
+        );
+        overflow: hidden;
+      }
+      #gameCanvas {
+        display: block;
+        border-radius: 18px;
+        background: rgba(0, 255, 255, 0.04);
+        box-shadow: 0 0 32px #0ff4;
+      }
+      .arcade-player-base {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 44px;
+        height: 64px;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2em;
+        color: #0ff;
+        text-shadow: 0 0 12px #0ff, 0 0 32px #0ff8;
+        background: linear-gradient(135deg, #0ff 60%, #09f 100%);
+        border-radius: 12px 0 0 12px;
+        box-shadow: 0 2px 12px #0ff8;
+        border: 2px solid #fff2;
+        transition: top 0.35s cubic-bezier(0.4, 1.6, 0.4, 1),
+          bottom 0.35s cubic-bezier(0.4, 1.6, 0.4, 1);
+      }
+      #zombieContainer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+      }
+      .arcade-input {
+        width: 340px;
+        padding: 18px 22px;
+        font-size: 1.2rem;
+        border: 2px solid #0ff;
+        border-radius: 22px;
+        background: rgba(0, 255, 255, 0.08);
+        color: #fff;
+        text-align: center;
+        outline: none;
+        box-shadow: 0 2px 24px #0ff8;
+        margin-bottom: 18px;
+        transition: border 0.2s, box-shadow 0.2s;
+      }
+      .arcade-input:focus {
+        border-color: #fff;
+        box-shadow: 0 0 32px #0ff8;
+        background: rgba(0, 255, 255, 0.13);
+      }
+      .arcade-instructions {
+        background: rgba(0, 255, 255, 0.06);
+        padding: 16px 24px;
+        border-radius: 16px;
+        margin-bottom: 18px;
+        color: #fff;
+        font-size: 1.08rem;
+        box-shadow: 0 2px 8px #0ff2;
+        width: 100%;
+        max-width: 600px;
+        text-align: left;
+      }
+      .arcade-howto-title {
+        font-weight: bold;
+        color: #0ff;
+        font-size: 1.1em;
+      }
+      .arcade-instructions ul {
+        margin: 8px 0 0 18px;
+        padding: 0;
+      }
+      .arcade-btn-row {
+        display: flex;
+        gap: 18px;
+        justify-content: center;
+        margin-top: 10px;
+      }
+      .arcade-btn {
+        font-size: 1.1rem;
+        padding: 12px 32px;
+        border-radius: 18px;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 2px 12px #0ff4;
+        margin: 0 4px;
+        transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      }
+      .arcade-btn-green {
+        background: linear-gradient(90deg, #0f0, #0ff);
+        color: #111;
+      }
+      .arcade-btn-blue {
+        background: linear-gradient(90deg, #09f, #0ff);
+        color: #fff;
+      }
+      .arcade-btn:hover {
+        box-shadow: 0 0 24px #0ff8;
+      }
+      .arcade-game-over {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.92);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+      .arcade-game-over-content {
+        background: rgba(20, 20, 40, 0.98);
+        padding: 38px 44px 32px 44px;
+        border-radius: 22px;
+        text-align: center;
+        box-shadow: 0 4px 32px #0ff8;
+        max-width: 340px;
+        width: 90%;
+        color: #fff;
+        border: 2px solid #0ff;
+      }
+      .arcade-game-over-icon {
+        font-size: 3rem;
+        margin-bottom: 10px;
+        text-shadow: 0 0 24px #0ff8;
+      }
+      .arcade-final-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 18px;
+        margin: 18px 0 22px 0;
+        font-size: 1.1rem;
+      }
+      .zombie-word {
+        background: linear-gradient(90deg, #0ff 60%, #09f 100%);
+        color: #222;
+        border: 2px solid #fff2;
+        border-radius: 22px;
+        padding: 10px 22px;
+        font-weight: bold;
+        font-size: 1.15rem;
+        box-shadow: 0 2px 12px #0ff8;
+        position: absolute;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: box-shadow 0.2s, background 0.2s;
+        text-shadow: 0 1px 8px #fff8;
+      }
+      .zombie-word .emoji {
+        font-size: 1.3em;
+      }
+      .zombie-word.shot {
+        background: linear-gradient(90deg, #f0f 60%, #f00 100%);
+        border-color: #fff;
+        box-shadow: 0 0 24px #f0f8;
+        animation: zombie-shot 0.4s linear;
+        color: #fff;
+      }
+      @keyframes zombie-shot {
+        0% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(1.5);
+        }
+      }
+      .arcade-btn-row-popup {
+        margin-top: 24px;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: center;
+      }
+      .arcade-game-over-content .arcade-btn {
+        min-width: 140px;
+        margin: 0;
+        font-size: 1.1rem;
+      }
+      @media (max-width: 1000px) {
+        .arcade-card {
+          max-width: 100vw;
+          padding: 18px 2vw;
+        }
+        #gameCanvas {
+          width: 98vw;
+          max-width: 98vw;
+        }
+        .arcade-input {
+          width: 90vw;
+          max-width: 340px;
+        }
+      }
+      @media (max-width: 600px) {
+        .arcade-card {
+          padding: 8px 0;
+        }
+        .arcade-instructions {
+          font-size: 0.98rem;
+        }
+        .arcade-input {
+          font-size: 1rem;
+        }
+        .arcade-btn-row-popup {
+          flex-direction: column;
+          gap: 12px;
+        }
+        .arcade-game-over-content .arcade-btn {
+          width: 100%;
+          min-width: 0;
+        }
+      }
+    </style>
+  </head>
+  <body class="arcade-bg">
+    <div class="arcade-center">
+      <div class="arcade-card">
+        <div class="arcade-top-bar">
+          <div class="arcade-stats">
+            <span class="arcade-stat"
+              ><span class="icon">💎</span> <span id="score">0</span></span
+            >
+            <span class="arcade-stat"
+              ><span class="icon">💀</span>
+              <span id="zombiesKilled">0</span></span
+            >
+            <span class="arcade-stat"
+              ><span class="icon">🛡️</span> <span id="lives">5</span></span
+            >
+            <span class="arcade-stat"
+              ><span class="icon">⚡</span>
+              <span id="accuracy">100%</span></span
+            >
+          </div>
+          <div class="arcade-wave-badge">
+            Wave <span id="waveDisplay">1</span>
+          </div>
+        </div>
+        <div class="arcade-canvas-wrap">
+          <canvas id="gameCanvas" width="800" height="500"></canvas>
+          <div class="arcade-player-base">🛡️</div>
+          <div id="zombieContainer"></div>
+        </div>
+        <input
+          type="text"
+          id="typingInput"
+          placeholder="Type zombie name & hit Enter..."
+          autocomplete="off"
+          class="arcade-input"
+        />
+        <div class="arcade-instructions">
+          <span class="arcade-howto-title">How to Play:</span>
+          <ul>
+            <li>
+              Zombies <span style="font-size: 1.2em">🧟‍♂️</span> appear from the
+              right and move left.
+            </li>
+            <li>Type a zombie's name and press <b>Enter</b> to shoot it.</li>
+            <li>
+              Don't let zombies reach your
+              <span style="color: #0ff">shield</span> or you'll lose a life.
+            </li>
+            <li>Survive as many waves as you can!</li>
+          </ul>
+        </div>
+        <div class="arcade-btn-row">
+          <button class="arcade-btn arcade-btn-green" onclick="restartGame()">
+            Play Again
+          </button>
+          <a href="games.html" class="arcade-btn arcade-btn-blue"
+            >Back to Games</a
+          >
+        </div>
+      </div>
+      <div class="arcade-game-over" id="gameOver">
+        <div class="arcade-game-over-content">
+          <div class="arcade-game-over-icon">☠️</div>
+          <h2>Game Over!</h2>
+          <div class="arcade-final-stats">
+            <div>
+              <span class="icon">💎</span> <span id="finalScore">0</span>
+            </div>
+            <div>
+              <span class="icon">💀</span> <span id="finalZombies">0</span>
+            </div>
+            <div>
+              <span class="icon">🌊</span> <span id="finalWave">1</span>
+            </div>
+            <div>
+              <span class="icon">⚡</span> <span id="finalAccuracy">100%</span>
+            </div>
+          </div>
+          <div class="arcade-btn-row arcade-btn-row-popup">
+            <button class="arcade-btn arcade-btn-green" onclick="restartGame()">
+              Play Again
+            </button>
+            <a href="games.html" class="arcade-btn arcade-btn-blue"
+              >Back to Games</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      const typingInput = document.getElementById("typingInput");
+      const gameOverDiv = document.getElementById("gameOver");
+
+      // Game state
+      let gameRunning = false;
+      let score = 0;
+      let zombiesKilled = 0;
+      let wave = 1;
+      let lives = 5;
+      let zombies = [];
+      let bullets = [];
+      let explosions = [];
+      let lastZombieTime = 0;
+      let zombieInterval = 3000; // Time between zombies
+      let zombieSpeed = 1; // Pixels per frame
+      let totalShots = 0;
+      let hits = 0;
+
+      // Zombie names
+      const zombieNames = [
+        "walker",
+        "runner",
+        "crawler",
+        "shambler",
+        "lurker",
+        "stalker",
+        "groaner",
+        "moaner",
+        "hunter",
+        "seeker",
+        "chaser",
+        "pursuer",
+        "nightmare",
+        "terror",
+        "horror",
+        "doom",
+        "death",
+        "decay",
+        "rotten",
+        "decayed",
+        "putrid",
+        "foul",
+        "vile",
+        "corrupt",
+      ];
+
+      class Zombie {
+        constructor(name) {
+          this.name = name;
+          this.x = canvas.width;
+          this.y = Math.random() * (canvas.height - 100) + 50;
+          this.width = ctx.measureText(name).width + 30;
+          this.height = 40;
+          this.timeToReach = 15000; // 15 seconds
+          this.created = Date.now();
+          this.danger = false;
+        }
+
+        update() {
+          this.x -= zombieSpeed;
+          const timeLeft = this.timeToReach - (Date.now() - this.created);
+
+          if (timeLeft < 3000) {
+            this.danger = true;
+          }
+
+          return this.x > -this.width && timeLeft > 0;
+        }
+
+        draw() {
+          const timeLeft = this.timeToReach - (Date.now() - this.created);
+          const progress = 1 - timeLeft / 15000;
+
+          // Draw zombie body
+          ctx.fillStyle = this.danger ? "#e74c3c" : "#2d5a27";
+          ctx.fillRect(this.x, this.y, this.width, this.height);
+
+          // Draw zombie name
+          ctx.fillStyle = "white";
+          ctx.font = "16px Inter";
+          ctx.textAlign = "center";
+          ctx.fillText(this.name, this.x + this.width / 2, this.y + 25);
+
+          // Draw danger indicator
+          if (this.danger) {
+            ctx.fillStyle = "#e74c3c";
+            ctx.fillRect(this.x, this.y - 30, this.width * progress, 5);
+          }
+        }
+
+        checkCollision(input) {
+          return input.toLowerCase() === this.name.toLowerCase();
+        }
+      }
+
+      class Bullet {
+        constructor(x, y) {
+          this.x = x;
+          this.y = y;
+          this.speed = 20;
+          this.active = true;
+        }
+
+        update() {
+          this.x += this.speed;
+          return this.x < canvas.width && this.active;
+        }
+
+        draw() {
+          ctx.fillStyle = "#f39c12";
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      class Explosion {
+        constructor(x, y) {
+          this.x = x;
+          this.y = y;
+          this.radius = 0;
+          this.maxRadius = 30;
+          this.duration = 20;
+          this.frame = 0;
+        }
+
+        update() {
+          this.frame++;
+          this.radius = (this.frame / this.duration) * this.maxRadius;
+          return this.frame < this.duration;
+        }
+
+        draw() {
+          const alpha = 1 - this.frame / this.duration;
+          ctx.save();
+          ctx.globalAlpha = alpha;
+
+          const gradient = ctx.createRadialGradient(
+            this.x,
+            this.y,
+            0,
+            this.x,
+            this.y,
+            this.radius
+          );
+          gradient.addColorStop(0, "#f39c12");
+          gradient.addColorStop(0.5, "#e67e22");
+          gradient.addColorStop(1, "transparent");
+
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.restore();
+        }
+      }
+
+      function getRandomZombieName() {
+        return zombieNames[Math.floor(Math.random() * zombieNames.length)];
+      }
+
+      function spawnZombie() {
+        const name = getRandomZombieName();
+        const zombie = new Zombie(name);
+        zombies.push(zombie);
+
+        // Create HTML element for zombie word
+        const zombieElement = document.createElement("div");
+        zombieElement.className = "zombie-word";
+        zombieElement.innerHTML = `<span class="emoji">🧟‍♂️</span>${name}`;
+        zombieElement.style.left = zombie.x + "px";
+        zombieElement.style.top = zombie.y + "px";
+        zombieElement.dataset.name = name;
+
+        document.getElementById("zombieContainer").appendChild(zombieElement);
+        zombie.element = zombieElement;
+      }
+
+      function updateGame() {
+        if (!gameRunning) return;
+
+        // Spawn new zombies
+        if (Date.now() - lastZombieTime > zombieInterval) {
+          spawnZombie();
+          lastZombieTime = Date.now();
+          // Increase difficulty
+          zombieInterval = Math.max(1000, zombieInterval - 100);
+          zombieSpeed = Math.min(3, zombieSpeed + 0.1);
+        }
+
+        // Update zombies
+        zombies = zombies.filter((zombie) => {
+          const alive = zombie.update();
+
+          // Update HTML element position
+          if (zombie.element) {
+            zombie.element.style.left = zombie.x + "px";
+            zombie.element.style.top = zombie.y + "px";
+          }
+
+          if (!alive) {
+            // Remove HTML element
+            if (zombie.element) {
+              zombie.element.remove();
+            }
+
+            // Zombie reached the player
+            lives--;
+            updateLives();
+            if (lives <= 0) {
+              endGame();
+            }
+          }
+          return alive;
+        });
+
+        // Update bullets
+        bullets = bullets.filter((bullet) => bullet.update());
+
+        // Update explosions
+        explosions = explosions.filter((explosion) => explosion.update());
+
+        // Check bullet-zombie collisions
+        bullets.forEach((bullet) => {
+          zombies.forEach((zombie, zombieIndex) => {
+            if (
+              bullet.x >= zombie.x &&
+              bullet.x <= zombie.x + zombie.width &&
+              bullet.y >= zombie.y &&
+              bullet.y <= zombie.y + zombie.height
+            ) {
+              // Hit!
+              bullet.active = false;
+              explosions.push(new Explosion(bullet.x, bullet.y));
+
+              // Animate zombie element
+              if (zombie.element) {
+                zombie.element.classList.add("shot");
+                setTimeout(() => zombie.element.remove(), 400);
+              }
+
+              // Move shield to zombie y
+              moveShieldTo(zombie.y);
+              zombies.splice(zombieIndex, 1);
+              zombiesKilled++;
+              score += 100;
+              hits++;
+              updateStats();
+            }
+          });
+        });
+
+        // Check for wave completion
+        if (zombiesKilled >= wave * 10) {
+          wave++;
+          document.getElementById("waveDisplay").textContent = wave;
+          score += 500; // Wave bonus
+          updateStats();
+        }
+      }
+
+      function drawGame() {
+        // Clear canvas
+        ctx.fillStyle = "rgba(45, 90, 39, 0.1)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw ground
+        ctx.fillStyle = "#1a3d1a";
+        ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+
+        // Draw player base
+        ctx.fillStyle = "#27ae60";
+        ctx.fillRect(0, canvas.height - 60, 40, 40);
+
+        // Draw zombies
+        zombies.forEach((zombie) => zombie.draw());
+
+        // Draw bullets
+        bullets.forEach((bullet) => bullet.draw());
+
+        // Draw explosions
+        explosions.forEach((explosion) => explosion.draw());
+
+        // Draw background elements
+        ctx.strokeStyle = "rgba(39, 174, 96, 0.2)";
+        ctx.lineWidth = 1;
+        for (let i = 0; i < canvas.width; i += 100) {
+          ctx.beginPath();
+          ctx.moveTo(i, 0);
+          ctx.lineTo(i, canvas.height);
+          ctx.stroke();
+        }
+      }
+
+      function gameLoop() {
+        updateGame();
+        drawGame();
+        requestAnimationFrame(gameLoop);
+      }
+
+      function updateLives() {
+        const livesDiv = document.getElementById("lives");
+        livesDiv.textContent = lives;
+      }
+
+      function updateStats() {
+        document.getElementById("score").textContent = score;
+        document.getElementById("zombiesKilled").textContent = zombiesKilled;
+        document.getElementById("waveDisplay").textContent = wave;
+
+        const accuracy =
+          totalShots > 0 ? Math.round((hits / totalShots) * 100) : 100;
+        document.getElementById("accuracy").textContent = accuracy + "%";
+      }
+
+      function endGame() {
+        gameRunning = false;
+
+        document.getElementById("typingInput").disabled = true;
+
+        document.getElementById("finalScore").textContent = score;
+        document.getElementById("finalZombies").textContent = zombiesKilled;
+        document.getElementById("finalWave").textContent = wave;
+
+        const accuracy =
+          totalShots > 0 ? Math.round((hits / totalShots) * 100) : 100;
+        document.getElementById("finalAccuracy").textContent = accuracy + "%";
+
+        gameOverDiv.style.display = "block";
+      }
+
+      function restartGame() {
+        gameRunning = true;
+        score = 0;
+        zombiesKilled = 0;
+        wave = 1;
+        lives = 5;
+        zombies = [];
+        bullets = [];
+        explosions = [];
+        lastZombieTime = Date.now();
+        zombieInterval = 3000;
+        zombieSpeed = 1;
+        totalShots = 0;
+        hits = 0;
+
+        // Clear zombie container
+        document.getElementById("zombieContainer").innerHTML = "";
+
+        document.getElementById("score").textContent = score;
+        document.getElementById("zombiesKilled").textContent = zombiesKilled;
+        document.getElementById("waveDisplay").textContent = wave;
+        document.getElementById("accuracy").textContent = "100%";
+
+        gameOverDiv.style.display = "none";
+        typingInput.disabled = false;
+        typingInput.value = "";
+        typingInput.focus();
+
+        updateLives();
+        resetShield();
+      }
+
+      // Move shield to y-position of last shot zombie
+      function moveShieldTo(y) {
+        const base = document.querySelector(".arcade-player-base");
+        const canvasRect = document
+          .getElementById("gameCanvas")
+          .getBoundingClientRect();
+        // Clamp y to canvas area
+        let shieldY = Math.max(0, Math.min(y - 32, 500 - 64)); // center on zombie, stay in canvas
+        base.style.top = shieldY + "px";
+        base.style.bottom = "auto";
+      }
+      // Reset shield to bottom
+      function resetShield() {
+        const base = document.querySelector(".arcade-player-base");
+        base.style.top = "";
+        base.style.bottom = "0";
+      }
+
+      // Event listeners
+      typingInput.addEventListener("input", (e) => {
+        if (!gameRunning) return;
+
+        const input = e.target.value.trim();
+        if (input) {
+          // Find all matching zombies
+          const matchingZombies = zombies
+            .map((z, idx) => ({ z, idx }))
+            .filter(({ z }) => z.checkCollision(input));
+
+          if (matchingZombies.length > 0) {
+            // Find the closest by y to the shield
+            const base = document.querySelector(".arcade-player-base");
+            let shieldY = 500 - 64 + 32; // default: bottom center
+            if (base.style.top && base.style.top !== "") {
+              shieldY = parseFloat(base.style.top) + 32;
+            }
+            let closest = matchingZombies[0];
+            let minDist = Math.abs(matchingZombies[0].z.y - shieldY);
+            for (let i = 1; i < matchingZombies.length; i++) {
+              const dist = Math.abs(matchingZombies[i].z.y - shieldY);
+              if (dist < minDist) {
+                closest = matchingZombies[i];
+                minDist = dist;
+              }
+            }
+            const { z: zombie, idx: zombieIndex } = closest;
+
+            // Move shield to zombie y
+            moveShieldTo(zombie.y);
+
+            // Animate bullet for feedback
+            bullets.push(new Bullet(40, shieldY));
+            totalShots++;
+
+            // Animate zombie element
+            if (zombie.element) {
+              zombie.element.classList.add("shot");
+              setTimeout(() => zombie.element.remove(), 400);
+            }
+
+            // Remove zombie instantly
+            zombies.splice(zombieIndex, 1);
+            zombiesKilled++;
+            score += 100;
+            hits++;
+            updateStats();
+
+            // Clear input
+            e.target.value = "";
+          }
+        }
+      });
+
+      // Start game
+      restartGame();
+      gameLoop();
+    </script>
+  </body>
+</html>

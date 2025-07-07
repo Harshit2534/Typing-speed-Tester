@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Typing Maze - Word Puzzle</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+        min-height: 100vh;
+        color: white;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .game-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 20px;
+      }
+
+      #mazeCanvas {
+        border: 3px solid #fff;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        display: block;
+        margin: 0 auto;
+      }
+
+      .game-panel {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .typing-input {
+        width: 100%;
+        padding: 15px;
+        font-size: 1.2rem;
+        border: 3px solid #4a90e2;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        text-align: center;
+        outline: none;
+        margin: 20px 0;
+      }
+
+      .typing-input:focus {
+        border-color: #fff;
+        box-shadow: 0 0 20px rgba(74, 144, 226, 0.5);
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #4a90e2;
+      }
+
+      .stat-label {
+        font-size: 0.8rem;
+        opacity: 0.8;
+      }
+
+      .current-challenge {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        border-left: 4px solid #f39c12;
+      }
+
+      .inventory {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 10px;
+        margin: 20px 0;
+      }
+
+      .inventory-item {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin: 5px 0;
+        font-size: 0.9rem;
+      }
+
+      .game-over {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+
+      .game-over-content {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        border: 2px solid #4a90e2;
+        max-width: 500px;
+        width: 90%;
+      }
+
+      .back-btn {
+        position: static !important;
+        margin-top: 32px;
+        margin-left: 0;
+        left: unset;
+        top: unset;
+        z-index: 1000;
+      }
+
+      .door {
+        background: linear-gradient(45deg, #8b4513, #a0522d);
+        border: 2px solid #654321;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      }
+
+      .door.unlocked {
+        background: linear-gradient(45deg, #27ae60, #2ecc71);
+        border-color: #1e8449;
+      }
+
+      .key {
+        background: linear-gradient(45deg, #f39c12, #e67e22);
+        border: 2px solid #d68910;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      }
+
+      .player {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        border: 2px solid #21618c;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      }
+
+      .exit {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        border: 2px solid #a93226;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      }
+
+      .wall {
+        background: #34495e;
+        border: 1px solid #2c3e50;
+      }
+
+      .floor {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .hint {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 10px;
+        border-radius: 8px;
+        margin: 10px 0;
+        font-size: 0.9rem;
+        border-left: 3px solid #f39c12;
+      }
+
+      @media (max-width: 900px) {
+        .game-container {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .bottom-btn-bar {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 32px 0 24px 0;
+      }
+
+      .back-btn {
+        position: static !important;
+        margin: 0 auto;
+        font-size: 1.1rem;
+        padding: 14px 38px;
+        border-radius: 18px;
+        box-shadow: 0 2px 12px #fff4;
+      }
+
+      @media (max-width: 600px) {
+        .game-container {
+          padding: 0;
+        }
+        .back-btn {
+          width: 90vw;
+          font-size: 1rem;
+        }
+        .bottom-btn-bar {
+          margin: 18px 0 12px 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-container">
+      <div>
+        <h1 style="margin-top: 0">🚶 Typing Maze</h1>
+        <p class="lead">
+          Navigate through the maze by typing words to unlock doors!
+        </p>
+        <div
+          class="how-to-play"
+          style="
+            background: rgba(255, 255, 255, 0.08);
+            padding: 12px 18px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            max-width: 700px;
+          "
+        >
+          <strong>How to Play:</strong>
+          <ul style="margin: 0 0 0 18px; padding: 0; font-size: 1rem">
+            <li>
+              Use <b>Arrow keys</b> or <b>WASD</b> to move the blue player.
+            </li>
+            <li>
+              Collect the <span style="color: #f39c12">golden key</span> to
+              enable the typing input.
+            </li>
+            <li>Type the <b>Required Word</b> to unlock doors.</li>
+            <li>
+              Move to the <span style="color: #8b4513">brown door</span> to open
+              it (if you have the key).
+            </li>
+            <li>Find the exit to complete the level!</li>
+          </ul>
+        </div>
+        <canvas id="mazeCanvas" width="800" height="600"></canvas>
+      </div>
+
+      <div class="game-panel">
+        <h3>🎯 Current Challenge</h3>
+        <div class="current-challenge" id="currentChallenge">
+          <strong>Objective:</strong> <span id="objective">Find the exit!</span
+          ><br />
+          <strong>Required Word:</strong> <span id="requiredWord">-</span>
+        </div>
+
+        <input
+          type="text"
+          class="typing-input"
+          id="typingInput"
+          placeholder="Type the required word..."
+          autocomplete="off"
+          disabled
+        />
+
+        <div class="hint" id="hint">
+          <strong>💡 Hint:</strong> Look for clues in the maze!
+        </div>
+
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-value" id="score">0</div>
+            <div class="stat-label">Score</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="level">1</div>
+            <div class="stat-label">Level</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="keys">0</div>
+            <div class="stat-label">Keys Found</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="doors">0</div>
+            <div class="stat-label">Doors Opened</div>
+          </div>
+        </div>
+
+        <div class="inventory">
+          <h4>🎒 Inventory</h4>
+          <div id="inventoryList">
+            <div class="inventory-item">No items yet</div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary w-100" onclick="nextLevel()">
+          Next Level
+        </button>
+      </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+      <div class="game-over-content">
+        <h2>🎉 Maze Completed!</h2>
+        <p>Congratulations! You've escaped the typing maze!</p>
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-value" id="finalScore">0</div>
+            <div class="stat-label">Final Score</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="finalLevel">1</div>
+            <div class="stat-label">Levels Completed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="finalKeys">0</div>
+            <div class="stat-label">Total Keys</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="finalDoors">0</div>
+            <div class="stat-label">Doors Opened</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="restartGame()">
+          Play Again
+        </button>
+        <a href="games.html" class="btn btn-secondary">Back to Games</a>
+      </div>
+    </div>
+
+    <div class="bottom-btn-bar">
+      <a href="games.html" class="btn btn-light back-btn">← Back to Games</a>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("mazeCanvas");
+      const ctx = canvas.getContext("2d");
+      const typingInput = document.getElementById("typingInput");
+      const gameOverDiv = document.getElementById("gameOver");
+
+      // Game state
+      let currentLevel = 1;
+      let score = 0;
+      let keysFound = 0;
+      let doorsOpened = 0;
+      let inventory = [];
+      let playerX = 1;
+      let playerY = 1;
+      let maze = [];
+      let mazeWidth = 20;
+      let mazeHeight = 15;
+      let cellSize = 40;
+      let currentObjective = "";
+      let requiredWord = "";
+      let currentHint = "";
+
+      // Level definitions
+      const levels = [
+        {
+          objective: "Find the key and unlock the door!",
+          requiredWord: "key",
+          hint: "The key is hidden in the maze. Look for the golden circle!",
+          maze: [
+            "WWWWWWWWWWWWWWWWWWWW",
+            "WPKWWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "WWWWWWWWWWWWWWWWWWWE",
+          ],
+        },
+        {
+          objective: "Collect the magic key and open the enchanted door!",
+          requiredWord: "magic",
+          hint: "Magic is powerful and mysterious. Find the glowing key!",
+          maze: [
+            "WWWWWWWWWWWWWWWWWWWW",
+            "WPKWWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "WWWWWWWWWWWWWWWWWWWE",
+          ],
+        },
+        {
+          objective: "Find the ancient key and unlock the treasure door!",
+          requiredWord: "ancient",
+          hint: "Ancient things are very old and valuable. Seek the golden key!",
+          maze: [
+            "WWWWWWWWWWWWWWWWWWWW",
+            "WPKWWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "W  WWWWWWWWWWWWWWWWW",
+            "WWWWWWWWWWWWWWWWWWWE",
+          ],
+        },
+      ];
+
+      function generateMaze(level) {
+        const levelData = levels[level - 1];
+        maze = levelData.maze.map((row) => row.split(""));
+
+        // Place key randomly
+        let keyPlaced = false;
+        while (!keyPlaced) {
+          const x = Math.floor(Math.random() * (mazeWidth - 2)) + 1;
+          const y = Math.floor(Math.random() * (mazeHeight - 2)) + 1;
+          if (maze[y][x] === " ") {
+            maze[y][x] = "K";
+            keyPlaced = true;
+          }
+        }
+
+        // Place door randomly
+        let doorPlaced = false;
+        while (!doorPlaced) {
+          const x = Math.floor(Math.random() * (mazeWidth - 2)) + 1;
+          const y = Math.floor(Math.random() * (mazeHeight - 2)) + 1;
+          if (maze[y][x] === " ") {
+            maze[y][x] = "D";
+            doorPlaced = true;
+          }
+        }
+
+        currentObjective = levelData.objective;
+        requiredWord = levelData.requiredWord;
+        currentHint = levelData.hint;
+
+        updateDisplay();
+      }
+
+      function drawMaze() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let y = 0; y < mazeHeight; y++) {
+          for (let x = 0; x < mazeWidth; x++) {
+            const cell = maze[y][x];
+            const cellX = x * cellSize;
+            const cellY = y * cellSize;
+
+            switch (cell) {
+              case "W": // Wall
+                ctx.fillStyle = "#34495e";
+                ctx.fillRect(cellX, cellY, cellSize, cellSize);
+                ctx.strokeStyle = "#2c3e50";
+                ctx.strokeRect(cellX, cellY, cellSize, cellSize);
+                break;
+              case " ": // Floor
+                ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+                ctx.fillRect(cellX, cellY, cellSize, cellSize);
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+                ctx.strokeRect(cellX, cellY, cellSize, cellSize);
+                break;
+              case "P": // Player
+                ctx.fillStyle = "#3498db";
+                ctx.beginPath();
+                ctx.arc(
+                  cellX + cellSize / 2,
+                  cellY + cellSize / 2,
+                  cellSize / 3,
+                  0,
+                  Math.PI * 2
+                );
+                ctx.fill();
+                ctx.strokeStyle = "#21618c";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                break;
+              case "K": // Key
+                ctx.fillStyle = "#f39c12";
+                ctx.beginPath();
+                ctx.arc(
+                  cellX + cellSize / 2,
+                  cellY + cellSize / 2,
+                  cellSize / 4,
+                  0,
+                  Math.PI * 2
+                );
+                ctx.fill();
+                ctx.strokeStyle = "#d68910";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                break;
+              case "D": // Door
+                ctx.fillStyle = "#8b4513";
+                ctx.fillRect(
+                  cellX + 5,
+                  cellY + 5,
+                  cellSize - 10,
+                  cellSize - 10
+                );
+                ctx.strokeStyle = "#654321";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(
+                  cellX + 5,
+                  cellY + 5,
+                  cellSize - 10,
+                  cellSize - 10
+                );
+                break;
+              case "E": // Exit
+                ctx.fillStyle = "#e74c3c";
+                ctx.fillRect(
+                  cellX + 5,
+                  cellY + 5,
+                  cellSize - 10,
+                  cellSize - 10
+                );
+                ctx.strokeStyle = "#a93226";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(
+                  cellX + 5,
+                  cellY + 5,
+                  cellSize - 10,
+                  cellSize - 10
+                );
+                break;
+            }
+          }
+        }
+      }
+
+      function updateDisplay() {
+        document.getElementById("objective").textContent = currentObjective;
+        document.getElementById("requiredWord").textContent = requiredWord;
+        document.getElementById(
+          "hint"
+        ).innerHTML = `<strong>💡 Hint:</strong> ${currentHint}`;
+        document.getElementById("score").textContent = score;
+        document.getElementById("level").textContent = currentLevel;
+        document.getElementById("keys").textContent = keysFound;
+        document.getElementById("doors").textContent = doorsOpened;
+
+        // Update inventory
+        const inventoryList = document.getElementById("inventoryList");
+        if (inventory.length === 0) {
+          inventoryList.innerHTML =
+            '<div class="inventory-item">No items yet</div>';
+        } else {
+          inventoryList.innerHTML = inventory
+            .map((item) => `<div class="inventory-item">${item}</div>`)
+            .join("");
+        }
+      }
+
+      function canMoveTo(x, y) {
+        if (x < 0 || x >= mazeWidth || y < 0 || y >= mazeHeight) return false;
+        const cell = maze[y][x];
+        return (
+          cell === " " ||
+          cell === "K" ||
+          cell === "D" ||
+          cell === "E" ||
+          cell === "U"
+        );
+      }
+
+      function movePlayer(dx, dy) {
+        const newX = playerX + dx;
+        const newY = playerY + dy;
+        if (!canMoveTo(newX, newY)) return;
+        // Clear old position
+        maze[playerY][playerX] = " ";
+        const cell = maze[newY][newX];
+        if (cell === "K") {
+          keysFound++;
+          inventory.push("Golden Key");
+          score += 100;
+          typingInput.disabled = false;
+          typingInput.focus();
+        } else if (cell === "D" || cell === "U") {
+          if (inventory.includes("Golden Key")) {
+            doorsOpened++;
+            score += 200;
+            inventory = inventory.filter((item) => item !== "Golden Key");
+            // Unlock the door visually
+            maze[newY][newX] = "U";
+            typingInput.disabled = false;
+            typingInput.focus();
+          } else {
+            // Can't pass through door without key
+            maze[playerY][playerX] = "P";
+            updateDisplay();
+            drawMaze();
+            return;
+          }
+        } else if (cell === "E") {
+          // Allow exit if all doors are unlocked (no 'D' left in maze)
+          let allDoorsUnlocked = true;
+          for (let y = 0; y < mazeHeight; y++) {
+            for (let x = 0; x < mazeWidth; x++) {
+              if (maze[y][x] === "D") allDoorsUnlocked = false;
+            }
+          }
+          if (allDoorsUnlocked) {
+            score += 500;
+            // Show a visual effect or message
+            setTimeout(() => {
+              endGame();
+            }, 300);
+            // Optionally, you can add a flash or animation here
+          } else {
+            // Can't exit until all doors are unlocked
+            maze[playerY][playerX] = "P";
+            updateDisplay();
+            drawMaze();
+            return;
+          }
+        }
+        // Move player
+        playerX = newX;
+        playerY = newY;
+        maze[playerY][playerX] = "P";
+        updateDisplay();
+        drawMaze();
+      }
+
+      function nextLevel() {
+        currentLevel++;
+        keysFound = 0;
+        doorsOpened = 0;
+        inventory = [];
+        playerX = 1;
+        playerY = 1;
+
+        if (currentLevel <= levels.length) {
+          generateMaze(currentLevel);
+          drawMaze();
+          typingInput.disabled = true;
+          typingInput.value = "";
+        } else {
+          endGame();
+        }
+      }
+
+      function endGame() {
+        document.getElementById("typingInput").disabled = true;
+        document.getElementById("finalScore").textContent = score;
+        document.getElementById("finalLevel").textContent = currentLevel;
+        document.getElementById("finalKeys").textContent = keysFound;
+        document.getElementById("finalDoors").textContent = doorsOpened;
+
+        gameOverDiv.style.display = "flex";
+      }
+
+      function restartGame() {
+        currentLevel = 1;
+        score = 0;
+        keysFound = 0;
+        doorsOpened = 0;
+        inventory = [];
+        playerX = 1;
+        playerY = 1;
+
+        document.getElementById("gameOver").style.display = "none";
+        generateMaze(currentLevel);
+        drawMaze();
+        typingInput.disabled = true;
+        typingInput.value = "";
+      }
+
+      // Event listeners
+      document.addEventListener("keydown", (e) => {
+        if (document.getElementById("gameOver").style.display === "flex")
+          return;
+        if (e.key === "ArrowUp" || e.key === "w") movePlayer(0, -1);
+        else if (e.key === "ArrowDown" || e.key === "s") movePlayer(0, 1);
+        else if (e.key === "ArrowLeft" || e.key === "a") movePlayer(-1, 0);
+        else if (e.key === "ArrowRight" || e.key === "d") movePlayer(1, 0);
+      });
+
+      typingInput.addEventListener("input", (e) => {
+        const input = e.target.value.trim();
+        if (input.toLowerCase() === requiredWord.toLowerCase()) {
+          score += 300;
+          typingInput.disabled = true;
+          typingInput.value = "";
+          updateDisplay();
+          // Unlock all doors
+          for (let y = 0; y < mazeHeight; y++) {
+            for (let x = 0; x < mazeWidth; x++) {
+              if (maze[y][x] === "D") maze[y][x] = "U";
+            }
+          }
+          drawMaze();
+        }
+      });
+
+      // Initialize
+      generateMaze(currentLevel);
+      drawMaze();
+      typingInput.disabled = true;
+    </script>
+  </body>
+</html>

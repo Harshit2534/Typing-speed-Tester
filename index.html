@@ -76,6 +76,10 @@
         <button id="aiSentenceBtn" class="btn btn-secondary">
           Get AI Sentence
         </button>
+        <a href="games.html" class="btn btn-success btn-lg play-games-btn">
+          <span style="font-size: 1.3em; vertical-align: -2px">🎮</span> Play
+          Games
+        </a>
       </div>
 
       <div
@@ -132,5 +136,26 @@
 
     <script src="script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      .play-games-btn {
+        font-size: 1.25rem;
+        padding: 14px 38px;
+        border-radius: 18px;
+        font-weight: 600;
+        box-shadow: 0 2px 12px #4f4f8a33;
+        margin-left: 8px;
+        margin-top: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none !important;
+      }
+      .play-games-btn:hover,
+      .play-games-btn:focus {
+        background: linear-gradient(90deg, #764ba2, #667eea);
+        color: #fff;
+        box-shadow: 0 4px 24px #764ba288;
+      }
+    </style>
   </body>
 </html>
